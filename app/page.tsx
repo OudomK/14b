@@ -1,244 +1,337 @@
-// "use client"
-
-// import Image from "next/image"
-// import { motion } from "framer-motion"
-
-// export default function Page() {
-//   return (
-//     <main className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-rose-900 via-red-800 to-amber-900">
-
-//       {/* Soft glowing overlay */}
-//       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,200,150,0.25),transparent_70%)]"></div>
-
-//       {/* Floating flowers */}
-//       <motion.div
-//         className="absolute top-10 left-10 text-5xl"
-//         animate={{ y: [0, -20, 0] }}
-//         transition={{ duration: 4, repeat: Infinity }}
-//       >
-//         🌸
-//       </motion.div>
-
-//       <motion.div
-//         className="absolute bottom-20 right-20 text-6xl"
-//         animate={{ y: [0, -30, 0] }}
-//         transition={{ duration: 5, repeat: Infinity }}
-//       >
-//         🌹
-//       </motion.div>
-
-//       {/* Main Card */}
-//       <motion.div
-//         initial={{ opacity: 0, scale: 0.8 }}
-//         animate={{ opacity: 1, scale: 1 }}
-//         transition={{ duration: 1 }}
-//         className="relative bg-white/10 backdrop-blur-xl p-10 rounded-3xl border border-rose-300 shadow-2xl text-center"
-//       >
-
-//         {/* Glowing animated photo */}
-//         <motion.div
-//           animate={{ boxShadow: ["0 0 20px #facc15", "0 0 40px #f472b6", "0 0 20px #facc15"] }}
-//           transition={{ duration: 3, repeat: Infinity }}
-//           className="relative w-48 h-48 mx-auto rounded-full overflow-hidden border-4 border-yellow-400"
-//         >
-//           <Image
-//             src="/noch.png"
-//             alt="Special"
-//             fill
-//             className="object-cover"
-//           />
-//         </motion.div>
-
-//         <h1 className="mt-8 text-4xl md:text-5xl font-bold text-yellow-300">
-//           Happy Valentine's Day 💖
-//         </h1>
-
-//         <p className="mt-4 text-rose-200 text-lg italic">
-//           February 14th — A Magical Day of Love
-//         </p>
-
-//         <p className="mt-6 max-w-md mx-auto text-rose-100">
-//           Like flowers bloom in spring,
-//           my heart blooms every time I see you.
-//           You are my sunshine, my peace, my forever.
-//         </p>
-
-//       </motion.div>
-
-//       {/* Extra floating petals */}
-//       <motion.div
-//         className="absolute top-1/3 left-1/4 text-4xl"
-//         animate={{ y: [0, -25, 0], rotate: [0, 15, -15, 0] }}
-//         transition={{ duration: 6, repeat: Infinity }}
-//       >
-//         🌺
-//       </motion.div>
-
-//     </main>
-//   )
-// }
-
-
-
-
-
-
 "use client"
 
 import Image from "next/image"
 import { motion } from "framer-motion"
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+
+type Choice = "CHINESE" | "NOT_CHINESE" | null
+
+type ConfettiItem = {
+  id: number
+  left: string
+  top: string
+  emoji: string
+  delay: number
+  duration: number
+  size: number
+}
+
+const EMOJIS = ["🧧", "🏮", "🧨", "💰", "✨", "🤣", "🍊", "🥟", "🎊", "🐉"]
+
+function DragonFly() {
+  const lanes = [12, 22, 34, 48, 60, 72, 82]
+
+  return (
+    <>
+      {Array.from({ length: 3 }).map((_, i) => {
+        const top = lanes[i % lanes.length]
+        const delay = i * 1.4
+
+        return (
+          <motion.div
+            key={i}
+            className="pointer-events-none absolute z-20"
+            style={{ top: `${top}%`, left: "-15%" }}
+            initial={{ x: 0, opacity: 0 }}
+            animate={{
+              x: ["0vw", "120vw"],
+              opacity: [0, 1, 1, 0],
+            }}
+            transition={{
+              duration: 7 + i * 1.2,
+              repeat: Infinity,
+              delay,
+              ease: "linear",
+            }}
+          >
+            <div className="relative flex items-center">
+              <motion.div
+                className="absolute -left-20 flex gap-2 text-xl opacity-80"
+                animate={{ opacity: [0.2, 0.9, 0.2], x: [0, -10, 0] }}
+                transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <span>🔥</span>
+                <span>✨</span>
+                <span>🧨</span>
+              </motion.div>
+
+              <motion.div
+                className="text-6xl drop-shadow-[0_10px_25px_rgba(0,0,0,0.45)]"
+                animate={{
+                  y: [0, -8, 0, 6, 0],
+                  rotate: [0, 4, -4, 3, 0],
+                }}
+                transition={{
+                  duration: 1.6,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              >
+                🐉
+              </motion.div>
+            </div>
+          </motion.div>
+        )
+      })}
+    </>
+  )
+}
 
 export default function Page() {
-  const [showCard, setShowCard] = useState(false)
-  const [noPos, setNoPos] = useState({ top: "50%", left: "60%" })
+  const [choice, setChoice] = useState<Choice>(null)
+  const [confetti, setConfetti] = useState<ConfettiItem[]>([])
 
-  // When No button hovered, move it randomly
-  const handleNoHover = () => {
-    const top = Math.random() * 80 + 10 + "%"
-    const left = Math.random() * 80 + 10 + "%"
-    setNoPos({ top, left })
-  }
+  // Generate confetti only after choosing
+  useEffect(() => {
+    if (!choice) return
+    const items: ConfettiItem[] = Array.from({ length: 48 }).map((_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      emoji: EMOJIS[i % EMOJIS.length],
+      delay: Math.random() * 0.9,
+      duration: 2.1 + Math.random() * 2.1,
+      size: 22 + Math.floor(Math.random() * 18),
+    }))
+    setConfetti(items)
+  }, [choice])
 
-  if (showCard) {
-    // Valentine card screen
+  const content = useMemo(() => {
+    if (choice === "CHINESE") {
+      return {
+        badge: "កូនចិន",
+        titleEN: "I’m Chinese 🧧",
+        titleKH: "កូនចិន ✅ 🧧",
+        lines: [
+          {
+            en: 'Click "KON CHEN"… let me see your Chinese face first 🤨',
+            kh: 'ចុច "កូនចិន" ហើយ… មើលមុខសិន! 🤨',
+          },
+          {
+            en: "Bro… you don’t look Chinese from ANY side 😭🤣",
+            kh: "មើលមុខហើយ… អត់ដឹងចិនខាងណាទេ​នេះ! 🤣😭",
+          },
+          {
+            en: "Anyway Gong Xi Fa Cai! Your Ang Pao is… loading forever 🐉💸",
+            kh: "Gong Xi Fa Cai! តែអាំងប៉ាវ… កំពុង Loading ជារៀងរហូត 🐉💸",
+          },
+        ],
+        imageSrc: "/image1.png",
+        imageAlt: "Funny Chinese New Year image",
+        fallbackEmoji: "🐉🧧🤣",
+      }
+    }
+
+    if (choice === "NOT_CHINESE") {
+      return {
+        badge: "កូនខ្មែរ",
+        titleEN: "Not Chinese 😌",
+        titleKH: "មិនមែនទេ ❌ 😌",
+        lines: [
+          {
+            en: "Ohhh not Chinese? Then wait for Khmer New Year 😌",
+            kh: "អូ… មិនមែនកូនចិនទេអ៉ី? ចឹងចាំចូលឆ្នាំខ្មែរ 😌",
+          },
+          {
+            en: "We’ll play: water splash 💦, powder attack 🌸, and disappear like ninja 🏃‍♂️🤣",
+            kh: "ចាំចូលឆ្នាំខ្មែរ… បាញ់ទឹក 💦 បាត់ម្សៅ 🌸 ហើយរត់បាត់ដូច Ninja 🏃‍♂️🤣",
+          },
+          {
+            en: "For now… no Ang Pao. Go eat oranges first 🍊😂",
+            kh: "តែឥឡូវ… អត់អាំងប៉ាវទេ! ទៅញ៉ាំក្រូចសិន 🍊😂",
+          },
+        ],
+        imageSrc: "/khmer.png",
+        imageAlt: "Funny Khmer New Year image",
+        fallbackEmoji: "💦🌸🤣",
+      }
+    }
+
+    return null
+  }, [choice])
+
+  // RESULT SCREEN
+  if (choice && content) {
     return (
-      <main className="relative min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-pink-500 via-purple-600 to-blue-400 text-white overflow-hidden">
-        {/* Floating hearts and flowers */}
-        {Array.from({ length: 25 }).map((_, i) => {
-          const emojis = ["🌸", "🌼", "💖", "💙"]
-          return (
-            <motion.div
-              key={i}
-              className="absolute text-2xl"
-              style={{
-                left: Math.random() * window.innerWidth,
-                top: Math.random() * window.innerHeight,
-                color: emojis[i % emojis.length] === "💙" ? "#3B82F6" : undefined,
-              }}
-              animate={{
-                y: [0, -180 - Math.random() * 100, 0],
-                x: [0, Math.random() * 60 - 30, 0],
-                rotate: [0, 360, 0],
-              }}
-              transition={{
-                duration: 5 + Math.random() * 3,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            >
-              {emojis[i % emojis.length]}
-            </motion.div>
-          )
-        })}
+      <main className="relative min-h-screen flex items-center justify-center bg-gradient-to-b from-red-950 via-red-900 to-red-950 text-white overflow-hidden">
+        <DragonFly />
+
+        {/* Confetti */}
+        {confetti.map((c) => (
+          <motion.div
+            key={c.id}
+            className="absolute select-none"
+            style={{
+              left: c.left,
+              top: c.top,
+              fontSize: c.size,
+            }}
+            initial={{ opacity: 0, y: 18, rotate: 0, scale: 0.9 }}
+            animate={{
+              opacity: [0, 1, 1, 0.95],
+              y: [18, -130, 18],
+              rotate: [0, 360, 0],
+              scale: [0.9, 1.15, 1],
+            }}
+            transition={{
+              duration: c.duration,
+              repeat: Infinity,
+              delay: c.delay,
+              ease: "easeInOut",
+            }}
+          >
+            {c.emoji}
+          </motion.div>
+        ))}
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1 }}
-          className="relative bg-white/10 backdrop-blur-xl p-8 rounded-3xl border border-rose-300 shadow-2xl text-center max-w-lg"
+          initial={{ opacity: 0, scale: 0.8, y: 18 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 180, damping: 16 }}
+          className="relative z-10 w-[92%] max-w-xl rounded-3xl border-4 border-yellow-400 bg-white/10 backdrop-blur-md p-7 md:p-9 shadow-2xl"
         >
-          {/* Flower trip photo */}
-          {/* <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 1.2 }}
-            className="relative w-72 h-48 mx-auto rounded-2xl overflow-hidden border-4 border-blue-400 mb-6"
-          >
-            <Image
-              src="/flower1.png" // <-- your flower photo
-              alt="Flower Trip"
-              fill
-              className="object-cover"
-            />
-          </motion.div> */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="inline-flex items-center justify-center px-4 py-1 rounded-full bg-yellow-400 text-red-950 font-extrabold text-sm">
+              {content.badge}
+            </div>
+            <button
+              onClick={() => {
+                setChoice(null)
+                setConfetti([])
+              }}
+              className="px-4 py-1 rounded-full bg-white/10 border border-white/20 hover:bg-white/15 transition text-sm font-bold"
+            >
+              Back
+            </button>
+          </div>
 
-          {/* Flower trip photo as a circle */}
-<motion.div
-  initial={{ scale: 0.8, opacity: 0 }}
-  animate={{ scale: 1, opacity: 1 }}
-  transition={{ duration: 1.2 }}
-  className="relative w-48 h-48 mx-auto rounded-full overflow-hidden border-4 border-blue-400 mb-6"
->
-  <Image
-    src="/noch.png" // <-- your flower photo
-    alt="Flower Trip"
-    fill
-    className="object-cover"
-  />
-</motion.div>
+          <h1 className="mt-4 text-2xl md:text-3xl font-extrabold text-yellow-300">
+            {content.titleEN}
+          </h1>
+          <h2 className="mt-1 text-lg md:text-xl font-bold text-yellow-100/95">
+            {content.titleKH}
+          </h2>
 
+          {/* Image */}
+          <div className="mt-6 rounded-2xl overflow-hidden border border-white/15 bg-black/20">
+            <div className="relative w-full aspect-[16/9]">
+              <Image
+                src={content.imageSrc}
+                alt={content.imageAlt}
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+          </div>
 
-          <motion.h1
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 1.2 }}
-            className="text-3xl md:text-4xl font-bold mb-4 text-yellow-300"
-          >
-            Happy Valentine's Day 💖
-          </motion.h1>
+          <div className="mt-3 text-center text-3xl md:text-4xl">{content.fallbackEmoji}</div>
 
-          <motion.p
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 1.5 }}
-            className="text-lg text-rose-100 italic"
-          >
-            Thank you for being amazing! Let’s grow together and make every moment beautiful. 🌸
-          </motion.p>
+          {/* Story text */}
+          <div className="mt-6 space-y-4">
+            {content.lines.map((l, idx) => (
+              <div
+                key={idx}
+                className="rounded-2xl bg-black/20 border border-white/10 p-4"
+              >
+                <p className="text-white font-semibold">{l.en}</p>
+                <p className="mt-1 text-yellow-100/90 font-semibold">{l.kh}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3 justify-center">
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-2 bg-yellow-400 text-red-950 font-extrabold rounded-full hover:bg-yellow-300 transition"
+            >
+              Prank Again 😈
+            </button>
+
+            <button
+              onClick={() => {
+                navigator.clipboard?.writeText(
+                  `${content.titleEN}\n${content.titleKH}\n\n` +
+                    content.lines.map((l) => `• ${l.en}\n• ${l.kh}`).join("\n\n")
+                )
+              }}
+              className="px-6 py-2 bg-white/10 border border-white/20 text-white font-bold rounded-full hover:bg-white/15 transition"
+            >
+              Copy Text 📋
+            </button>
+          </div>
+
+          <p className="mt-5 text-center text-xs text-white/60">Anyway this is for funny ✨</p>
         </motion.div>
+
+        <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top,rgba(255,215,0,0.22),transparent_60%)]" />
       </main>
     )
   }
 
-  // First ask screen
+  // START SCREEN
   return (
-    <main className="relative min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-rose-900 via-red-800 to-amber-900 text-white overflow-hidden">
+    <main className="relative min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-red-900 via-red-800 to-red-700 text-white overflow-hidden">
+      <DragonFly />
 
-      {/* Your photo */}
+      <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]" />
+
       <motion.div
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 1 }}
-        className="relative w-48 h-48 rounded-full overflow-hidden border-4 border-yellow-400 mb-6"
+        className="absolute -top-6 left-6 text-5xl"
+        animate={{ y: [0, 12, 0] }}
+        transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
       >
-        <Image
-          src="/image.png" // <-- your photo
-          alt="Me"
-          fill
-          className="object-cover"
-        />
+        🏮
+      </motion.div>
+      <motion.div
+        className="absolute -top-8 right-8 text-5xl"
+        animate={{ y: [0, 14, 0] }}
+        transition={{ duration: 2.9, repeat: Infinity, ease: "easeInOut" }}
+      >
+        🏮
       </motion.div>
 
-      {/* Question */}
-      <motion.h1
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 1.2 }}
-        className="text-3xl md:text-4xl font-bold mb-6 text-yellow-300"
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+        className="text-center px-6"
       >
-        Do you love me? 💖
-      </motion.h1>
+        <div className="text-sm uppercase tracking-widest text-yellow-200">Fun Prank Story 🧧</div>
+        <h1 className="mt-2 text-3xl md:text-4xl font-extrabold leading-tight">
+          <span className="text-yellow-300">Are you Chinese?</span> 🧧
+        </h1>
+        <p className="mt-2 text-yellow-100/90 text-lg font-bold">តើអ្នកជាកូនចិនមែនទេ? 🧧</p>
+      </motion.div>
 
-      {/* Buttons */}
-      <div className="relative w-full flex justify-center gap-6 mt-4">
-        {/* Yes button */}
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 150, damping: 14 }}
+        className="relative w-36 h-36 md:w-40 md:h-40 rounded-full border-4 border-yellow-400 mt-7 mb-8 bg-yellow-100 overflow-hidden shadow-xl"
+      >
+        <Image src="/image.png" alt="Me" fill className="object-cover" />
+      </motion.div>
+
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-center px-6 w-full max-w-xl">
         <button
-          onClick={() => setShowCard(true)}
-          className="px-6 py-3 bg-pink-500 hover:bg-pink-400 rounded-full shadow-lg font-semibold transition"
+          onClick={() => setChoice("CHINESE")}
+          className="w-full md:w-auto px-8 py-3 bg-yellow-400 hover:bg-yellow-300 text-red-950 font-extrabold rounded-full shadow-lg transform hover:scale-105 transition"
         >
-          Yes ❤️
+          កូនចិន ✅ (Yes)
         </button>
 
-        {/* No button that moves */}
-        <motion.button
-          style={{ position: "absolute", top: noPos.top, left: noPos.left }}
-          onMouseEnter={handleNoHover}
-          className="px-6 py-3 bg-red-500 hover:bg-red-400 rounded-full shadow-lg font-semibold transition"
+        <button
+          onClick={() => setChoice("NOT_CHINESE")}
+          className="w-full md:w-auto px-8 py-3 bg-white/10 border border-white/20 hover:bg-white/15 text-white font-extrabold rounded-full shadow-lg transform hover:scale-105 transition"
         >
-          No 💔
-        </motion.button>
+          មិនមែនទេ ❌ (No)
+        </button>
       </div>
+
+      <p className="mt-8 text-xs text-white/65 px-6 text-center max-w-md">
+        ឆ្លើយមើលថា កូនចិន​ ក៏​ កូនខ្មែរ👾
+      </p>
     </main>
   )
 }
