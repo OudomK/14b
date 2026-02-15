@@ -297,7 +297,7 @@ export default function Page() {
         transition={{ duration: 0.35 }}
         className="text-center px-6"
       >
-        <div className="text-sm uppercase tracking-widest text-yellow-200">Fun Prank Story 🧧</div>
+        {/* <div className="text-sm uppercase tracking-widest text-yellow-200">Fun Prank Story 🧧</div> */}
         <h1 className="mt-2 text-3xl md:text-4xl font-extrabold leading-tight">
           <span className="text-yellow-300">Are you Chinese?</span> 🧧
         </h1>
